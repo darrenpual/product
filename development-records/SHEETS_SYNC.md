@@ -1,0 +1,3 @@
+# Sheet-driven publication
+
+Google Sheets is the authoritative source. Collection writes product data and daily recommendations to Sheets; export_site.py publishes a minimal JSON snapshot only after a successful PUBLISH run and explicit TRUE approval in PUBLIC_APPROVALS. The site is public, so confirm product image and data redistribution rights before approving. Credentials never go into browser JS or git. Enable ENABLE_PUBLIC_SHEET_EXPORT only after authorization and testing; schedule 09:07 KST. Static UI deployments otherwise use the empty snapshot; rerun export after UI changes. Provider authentication and direct Taobao access remain prerequisites. No live crawl verified in this change.
