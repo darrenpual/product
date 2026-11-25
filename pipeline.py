@@ -1,4 +1,7 @@
-import json, uuid
+import json, uuid, os
+from analysis_engine import analyze
+from storage import save_products, save_analysis
+from vision import evaluate
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from collectors import collect_feeds, collect_pages
@@ -18,6 +21,16 @@ def run():
         items = list(collect_feeds()) + list(collect_pages())
         if not items:
             raise RuntimeError("No authorized feed/page data; configure sources")
+        save_products(book,items,now.isoformat())
+        budget = int(os.getenv("MAX_VISION_ITEMS","100"))
+        def limited_vision(x):
+            nonlocal budget
+            if budget <= 0:
+                return None
+            budget -= 1
+            return evaluate(x)
+        items = analyze(items,limited_vision if os.getenv("OPENAI_API_KEY") and os.getenv("VISION_MODEL") else None)
+        save_analysis(book,items,now.isoformat())
         refs = records(book,"DAILY_REFERENCES")
         previous = [x.get("cluster_id") or x.get("product_id") for x in refs]
         selected = rank(items,cfg,previous)

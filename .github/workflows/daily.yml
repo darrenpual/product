@@ -1,0 +1,35 @@
+name: Daily discovery
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 15 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: daily-discovery
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: vars.ENABLE_DAILY_DISCOVERY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      SHEET_ID: ${{ secrets.SHEET_ID }}
+      GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+      FEEDS_JSON: ${{ secrets.FEEDS_JSON }}
+      AUTHORIZED_PAGES_JSON: ${{ secrets.AUTHORIZED_PAGES_JSON }}
+      OKDATA_TOKEN: ${{ secrets.OKDATA_TOKEN }}
+      ELIM_TOKEN: ${{ secrets.ELIM_TOKEN }}
+      SILKLINE_TOKEN: ${{ secrets.SILKLINE_TOKEN }}
+      SANDBASE_TOKEN: ${{ secrets.SANDBASE_TOKEN }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      VISION_MODEL: ${{ vars.VISION_MODEL }}
+      MAX_VISION_ITEMS: '100'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+      - run: python pipeline.py
